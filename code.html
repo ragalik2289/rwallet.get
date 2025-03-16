@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RWallet</title>
+    <script src="https://unpkg.com/tronweb/dist/TronWeb.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>RWallet</h1>
+    <p id="status">Подключите TronLink...</p>
+    <button onclick="connectWallet()">Подключить TronLink</button>
+    <p id="walletAddress"></p>
+    <p id="balance"></p>
+    <input type="text" id="recipient" placeholder="Адрес получателя">
+    <input type="number" id="amount" placeholder="Сумма TRX">
+    <button onclick="sendTRX()">Отправить TRX</button>
+
+    <script>
+        let tronWeb;
+
+        async function connectWallet() {
+            if (window.tronWeb && window.tronWeb.defaultAddress.base58) {
+                tronWeb = window.tronWeb;
+                document.getElementById('walletAddress').innerText = `Адрес: ${tronWeb.defaultAddress.base58}`;
+                document.getElementById('status').innerText = 'Кошелек подключен!';
+                getBalance();
+            } else {
+                alert('Пожалуйста, подключите TronLink');
+            }
+        }
+
+        async function getBalance() {
+            if (!tronWeb) return;
+            let balance = await tronWeb.trx.getBalance(tronWeb.defaultAddress.base58);
+            document.getElementById('balance').innerText = `Баланс: ${balance / 1e6} TRX`;
+        }
+
+        async function sendTRX() {
+            if (!tronWeb) return alert('Подключите TronLink');
+            let to = document.getElementById('recipient').value;
+            let amount = document.getElementById('amount').value * 1e6;
+            if (!to || amount <= 0) return alert('Введите корректные данные');
+            
+            try {
+                let tx = await tronWeb.trx.sendTransaction(to, amount);
+                alert('Транзакция отправлена: ' + tx.txid);
+                getBalance();
+            } catch (error) {
+                alert('Ошибка транзакции: ' + error);
+            }
+        }
+    </script>
+</body>
+</html>
